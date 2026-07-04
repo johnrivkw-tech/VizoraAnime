@@ -6,9 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
 import com.example.animetracker.ui.screens.AnimeDetailsScreen
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -25,7 +23,7 @@ import com.example.animetracker.ui.navigation.Destination
 import com.example.animetracker.ui.screens.DiscoverScreen
 import com.example.animetracker.ui.screens.HomeFeedScreen
 import com.example.animetracker.ui.screens.HomeScreen
-import com.example.animetracker.ui.screens.PlaceholderScreen
+import com.example.animetracker.ui.screens.ProfileScreen
 import com.example.animetracker.ui.screens.SearchScreen
 import com.example.animetracker.ui.theme.AnimeTrackerTheme
 import com.example.animetracker.viewmodel.AnimeViewModel
@@ -84,11 +82,7 @@ private fun VizoraApp() {
                 )
             }
             composable(Destination.PROFILE.route) {
-                PlaceholderScreen(
-                    title = "Profile",
-                    subtitle = "Your stats and settings will live here",
-                    icon = Icons.Filled.Person
-                )
+                ProfileScreen(viewModel = viewModel)
             }
             composable(
                 route = "details/{malId}",
