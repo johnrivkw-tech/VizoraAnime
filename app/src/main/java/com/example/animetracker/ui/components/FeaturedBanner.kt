@@ -2,6 +2,7 @@ package com.example.animetracker.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -21,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,10 +38,15 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.animetracker.ui.model.HomeCardItem
 import java.util.Locale
+import kotlinx.coroutines.delay
 
+/**
+ * Auto-advancing carousel of featured anime shown at the top of Home.
+ * Swipeable, with dot indicators, and pauses auto-advance while empty/loading.
+ */
 @Composable
-fun FeaturedBanner(item: HomeCardItem?, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    if (item == null) {
+fun FeaturedBanner(items: List<HomeCardItem>, onClick: (HomeCardItem) -> Unit, modifier: Modifier = Modifier) {
+    if (items.isEmpty()) {
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -48,10 +59,60 @@ fun FeaturedBanner(item: HomeCardItem?, onClick: () -> Unit, modifier: Modifier 
         return
     }
 
+    val pagerState = rememberPagerState(pageCount = { items.size })
+
+    // Auto-advance every 5s, looping back to the start; pauses naturally
+    // while the user is actively dragging (isScrollInProgress guards it).
+    LaunchedEffect(items.size) {
+        if (items.size <= 1) return@LaunchedEffect
+        while (true) {
+            delay(5000)
+            if (!pagerState.isScrollInProgress) {
+                val next = (pagerState.currentPage + 1) % items.size
+                pagerState.animateScrollToPage(next)
+            }
+        }
+    }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+        ) { page ->
+            FeaturedBannerCard(item = items[page], onClick = { onClick(items[page]) })
+        }
+
+        if (items.size > 1) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                repeat(items.size) { index ->
+                    val selected = index == pagerState.currentPage
+                    Box(
+                        modifier = Modifier
+                            .size(if (selected) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) MaterialTheme.colorScheme.primary
+                                else Color.White.copy(alpha = 0.5f)
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeaturedBannerCard(item: HomeCardItem, onClick: () -> Unit) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(220.dp)
+        modifier = Modifier
+            .fillMaxSize()
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
     ) {
