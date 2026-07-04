@@ -8,12 +8,13 @@ val VizoraVioletDark = Color(0xFF6D28D9)
 val VizoraPink = Color(0xFFEC4899)
 val VizoraCyan = Color(0xFF22D3EE)
 
-// Dark theme surfaces: a near-black with a faint violet tint, instead of
-// Material's flat neutral gray, so cards and the background read as one
-// cohesive dark palette rather than "default app gray".
-val DarkBackground = Color(0xFF0E0B16)
-val DarkSurface = Color(0xFF17131F)
-val DarkSurfaceVariant = Color(0xFF241E33)
+// Dark theme surfaces: true black background (per user preference) with
+// slightly-raised, faintly-violet-tinted surfaces for cards — so cards and
+// sheets still read as distinct layers against the pure-black canvas,
+// instead of everything blending into flat Material gray.
+val DarkBackground = Color(0xFF000000)
+val DarkSurface = Color(0xFF0C0A12)
+val DarkSurfaceVariant = Color(0xFF1C1726)
 val DarkOnSurfaceVariant = Color(0xFFCBBFE0)
 
 // Light theme surfaces: warm off-white with a hint of violet.
