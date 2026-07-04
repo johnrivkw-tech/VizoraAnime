@@ -12,6 +12,10 @@ import com.example.animetracker.data.network.JikanAnimeResult
 import com.example.animetracker.data.network.JikanCharacterEntry
 import com.example.animetracker.data.network.JikanGenre
 import com.example.animetracker.data.network.JikanRepository
+import com.example.animetracker.data.ImportedMalAnime
+import com.example.animetracker.data.buildMalXml
+import com.example.animetracker.data.parseMalXml
+import java.io.InputStream
 import com.example.animetracker.data.network.parseDurationMinutes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
