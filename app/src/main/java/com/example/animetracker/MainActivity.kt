@@ -63,7 +63,8 @@ private fun VizoraApp() {
             composable(Destination.HOME.route) {
                 HomeFeedScreen(
                     viewModel = viewModel,
-                    onAnimeClick = { malId -> navController.navigate("details/$malId") }
+                    onAnimeClick = { malId -> navController.navigate("details/$malId") },
+                    onSearchClick = { navController.navigate(Destination.SEARCH.route) }
                 )
             }
             composable(Destination.MY_LIST.route) {
@@ -72,13 +73,15 @@ private fun VizoraApp() {
             composable(Destination.DISCOVER.route) {
                 DiscoverScreen(
                     viewModel = viewModel,
-                    onAnimeClick = { malId -> navController.navigate("details/$malId") }
+                    onAnimeClick = { malId -> navController.navigate("details/$malId") },
+                    onSearchClick = { navController.navigate(Destination.SEARCH.route) }
                 )
             }
             composable(Destination.SEARCH.route) {
                 SearchScreen(
                     viewModel = viewModel,
-                    onAnimeClick = { malId -> navController.navigate("details/$malId") }
+                    onAnimeClick = { malId -> navController.navigate("details/$malId") },
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Destination.PROFILE.route) {
