@@ -26,7 +26,9 @@ data class JikanAnimeResult(
     val images: JikanImages,
     val genres: List<JikanNamedEntity> = emptyList(),
     val studios: List<JikanNamedEntity> = emptyList(),
-    val trailer: JikanTrailer? = null
+    val trailer: JikanTrailer? = null,
+    /** Raw duration string from Jikan, e.g. "24 min per ep" or "1 hr 44 min". */
+    val duration: String? = null
 )
 
 data class JikanNamedEntity(
@@ -73,3 +75,16 @@ data class JikanCharacterInfo(
     val name: String,
     val images: JikanImages
 )
+
+/**
+ * Parses Jikan's free-text duration ("24 min per ep", "1 hr 44 min", "2 hr 3 min per ep")
+ * into total minutes. Falls back to [fallback] (default: 24, a typical TV episode) if the
+ * string is missing or doesn't contain a recognizable number.
+ */
+fun parseDurationMinutes(raw: String?, fallback: Int = 24): Int {
+    if (raw.isNullOrBlank()) return fallback
+    val hours = Regex("""(\d+)\s*hr""").find(raw)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    val minutes = Regex("""(\d+)\s*min""").find(raw)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    val total = hours * 60 + minutes
+    return if (total > 0) total else fallback
+}
