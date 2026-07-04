@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
@@ -42,7 +43,7 @@ import com.example.animetracker.viewmodel.AnimeViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
+fun SearchScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit, onBack: () -> Unit) {
     val query by viewModel.catalogQuery.collectAsState()
     val results by viewModel.catalogResults.collectAsState()
     val isLoading by viewModel.isCatalogSearching.collectAsState()
@@ -54,7 +55,16 @@ fun SearchScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Search") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Search") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -120,4 +130,6 @@ fun SearchScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
         }
     }
 }
+
+
 
