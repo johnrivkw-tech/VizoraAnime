@@ -18,11 +18,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -50,7 +53,7 @@ private enum class DiscoverTab { GENRES, SEASON }
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoverScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
+fun DiscoverScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit, onSearchClick: () -> Unit) {
     var tab by remember { mutableStateOf(DiscoverTab.GENRES) }
 
     LaunchedEffect(Unit) {
@@ -59,7 +62,16 @@ fun DiscoverScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Discover") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Discover") },
+                actions = {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
