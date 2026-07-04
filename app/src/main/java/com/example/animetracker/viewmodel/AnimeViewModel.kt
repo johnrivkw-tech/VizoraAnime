@@ -12,6 +12,7 @@ import com.example.animetracker.data.network.JikanAnimeResult
 import com.example.animetracker.data.network.JikanCharacterEntry
 import com.example.animetracker.data.network.JikanGenre
 import com.example.animetracker.data.network.JikanRepository
+import com.example.animetracker.data.network.parseDurationMinutes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
