@@ -1,4 +1,4 @@
-package com.example.animetracker.ui.navigation
+    package com.example.animetracker.ui.navigation
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -16,8 +16,12 @@ fun BottomNavBar(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    // Search now lives as a top-right icon on each main screen instead of
+    // taking up a bottom-nav slot.
+    val tabs = Destination.entries.filter { it != Destination.SEARCH }
+
     NavigationBar {
-        Destination.entries.forEach { destination ->
+        tabs.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
             NavigationBarItem(
                 selected = selected,
