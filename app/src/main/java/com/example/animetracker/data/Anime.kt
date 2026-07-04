@@ -9,7 +9,9 @@ import androidx.room.PrimaryKey
  * [totalEpisodes] of 0 means "unknown / not set". [rating] of 0 means
  * "not rated yet" (valid ratings are 1-10). [imageUrl] and [malId] are
  * filled in automatically when added via online search, and stay null
- * for manually-added entries.
+ * for manually-added entries. [durationMinutes] is the runtime of a single
+ * episode, used to calculate total watch time; defaults to 24 (a typical
+ * TV episode) for manually-added entries where it's unknown.
  */
 @Entity(tableName = "anime_table")
 data class Anime(
@@ -22,5 +24,6 @@ data class Anime(
     val rating: Int = 0,
     val imageUrl: String? = null,
     val malId: Int? = null,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val durationMinutes: Int = 24
 )
