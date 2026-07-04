@@ -376,7 +376,7 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
             repository.insert(
                 Anime(
                     name = name,
-                    episodesWatched = episodesWatched,
+                    episodesWatched = normalizeEpisodes(episodesWatched, totalEpisodes, status),
                     totalEpisodes = totalEpisodes,
                     status = status,
                     rating = rating
@@ -387,7 +387,11 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateAnime(anime: Anime) {
         viewModelScope.launch {
-            repository.update(anime)
+            repository.update(
+                anime.copy(
+                    episodesWatched = normalizeEpisodes(anime.episodesWatched, anime.totalEpisodes, anime.status)
+                )
+            )
         }
     }
 
@@ -397,6 +401,16 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
             val next = (anime.episodesWatched + 1).coerceAtMost(cap)
             repository.update(anime.copy(episodesWatched = next))
         }
+    }
+
+    /**
+     * Enforces two rules everywhere status/episode counts change:
+     *  - episodesWatched can never exceed totalEpisodes (when totalEpisodes is known)
+     *  - marking something Completed jumps episodesWatched straight to totalEpisodes
+     */
+    private fun normalizeEpisodes(episodesWatched: Int, totalEpisodes: Int, status: AnimeStatus): Int {
+        if (status == AnimeStatus.COMPLETED && totalEpisodes > 0) return totalEpisodes
+        return if (totalEpisodes > 0) episodesWatched.coerceIn(0, totalEpisodes) else episodesWatched.coerceAtLeast(0)
     }
 
     fun deleteAnime(anime: Anime) {
@@ -491,13 +505,20 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
     fun setAnimeStatus(details: JikanAnimeResult, existing: Anime?, status: AnimeStatus) {
         viewModelScope.launch {
             if (existing != null) {
-                repository.update(existing.copy(status = status))
+                repository.update(
+                    existing.copy(
+                        status = status,
+                        episodesWatched = normalizeEpisodes(existing.episodesWatched, existing.totalEpisodes, status)
+                    )
+                )
             } else {
+                val totalEpisodes = details.episodes ?: 0
                 repository.insert(
                     Anime(
                         name = details.title,
-                        totalEpisodes = details.episodes ?: 0,
+                        totalEpisodes = totalEpisodes,
                         status = status,
+                        episodesWatched = normalizeEpisodes(0, totalEpisodes, status),
                         imageUrl = details.images.jpg.large_image_url ?: details.images.jpg.image_url,
                         malId = details.mal_id,
                         durationMinutes = com.example.animetracker.data.network.parseDurationMinutes(details.duration)
@@ -518,4 +539,4 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
             repository.update(anime.copy(isFavorite = !anime.isFavorite))
         }
     }
-}
+}            
