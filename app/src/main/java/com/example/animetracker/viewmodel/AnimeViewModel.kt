@@ -7,16 +7,15 @@ import com.example.animetracker.data.Anime
 import com.example.animetracker.data.AnimeDatabase
 import com.example.animetracker.data.AnimeRepository
 import com.example.animetracker.data.AnimeStatus
+import com.example.animetracker.data.ImportedMalAnime
 import com.example.animetracker.data.SortOption
+import com.example.animetracker.data.buildMalXml
 import com.example.animetracker.data.network.JikanAnimeResult
 import com.example.animetracker.data.network.JikanCharacterEntry
 import com.example.animetracker.data.network.JikanGenre
 import com.example.animetracker.data.network.JikanRepository
-import com.example.animetracker.data.ImportedMalAnime
-import com.example.animetracker.data.buildMalXml
 import com.example.animetracker.data.parseMalXml
 import java.io.InputStream
-import com.example.animetracker.data.network.parseDurationMinutes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -136,6 +135,10 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _characters = MutableStateFlow<List<JikanCharacterEntry>>(emptyList())
     val characters: StateFlow<List<JikanCharacterEntry>> = _characters.asStateFlow()
+
+    // --- Profile: MAL import/export ---
+    private val _importExportMessage = MutableStateFlow<String?>(null)
+    val importExportMessage: StateFlow<String?> = _importExportMessage.asStateFlow()
 
     init {
         val dao = AnimeDatabase.getDatabase(application).animeDao()
@@ -356,7 +359,7 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
                     totalEpisodes = result.episodes ?: 0,
                     imageUrl = result.images.jpg.large_image_url ?: result.images.jpg.image_url,
                     malId = result.mal_id,
-                    durationMinutes = parseDurationMinutes(result.duration)
+                    durationMinutes = com.example.animetracker.data.network.parseDurationMinutes(result.duration)
                 )
             )
         }
@@ -402,6 +405,60 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // --- Profile: MAL import/export ---
+
+    /** Reads a MAL-format XML export and merges it into the local list, matching by MAL ID. */
+    fun importFromMalXml(input: InputStream) {
+        viewModelScope.launch {
+            try {
+                val imported: List<ImportedMalAnime> = parseMalXml(input)
+                val existing = allLocalAnime.value
+                val existingByMalId = existing.mapNotNull { a -> a.malId?.let { it to a } }.toMap()
+
+                var addedCount = 0
+                var updatedCount = 0
+
+                imported.forEach { entry ->
+                    val match = entry.malId?.let { existingByMalId[it] }
+                    if (match != null) {
+                        repository.update(
+                            match.copy(
+                                episodesWatched = entry.episodesWatched,
+                                totalEpisodes = if (entry.totalEpisodes > 0) entry.totalEpisodes else match.totalEpisodes,
+                                status = entry.status,
+                                rating = if (entry.rating > 0) entry.rating else match.rating
+                            )
+                        )
+                        updatedCount++
+                    } else {
+                        repository.insert(
+                            Anime(
+                                name = entry.title,
+                                episodesWatched = entry.episodesWatched,
+                                totalEpisodes = entry.totalEpisodes,
+                                status = entry.status,
+                                rating = entry.rating,
+                                malId = entry.malId
+                            )
+                        )
+                        addedCount++
+                    }
+                }
+
+                _importExportMessage.value = "Import complete: $addedCount added, $updatedCount updated."
+            } catch (e: Exception) {
+                _importExportMessage.value = "Import failed: ${e.message ?: "invalid file"}"
+            }
+        }
+    }
+
+    /** Builds a MAL-format XML string of the current local list, ready to write to a file. */
+    fun exportToMalXml(): String = buildMalXml(allLocalAnime.value)
+
+    fun clearImportExportMessage() {
+        _importExportMessage.value = null
+    }
+
     // --- Details screen actions ---
 
     fun loadAnimeDetails(malId: Int) {
@@ -442,7 +499,8 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
                         totalEpisodes = details.episodes ?: 0,
                         status = status,
                         imageUrl = details.images.jpg.large_image_url ?: details.images.jpg.image_url,
-                        malId = details.mal_id
+                        malId = details.mal_id,
+                        durationMinutes = com.example.animetracker.data.network.parseDurationMinutes(details.duration)
                     )
                 )
             }
