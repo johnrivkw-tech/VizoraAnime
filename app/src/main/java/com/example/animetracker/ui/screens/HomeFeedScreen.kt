@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,7 +35,7 @@ import com.example.animetracker.viewmodel.AnimeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
+fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit, onSearchClick: () -> Unit) {
     val trending by viewModel.trending.collectAsState()
     val popularSeason by viewModel.popularThisSeason.collectAsState()
     val topRated by viewModel.topRated.collectAsState()
@@ -65,7 +69,16 @@ fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
         topRatedItems.isNotEmpty() || newReleaseItems.isNotEmpty() || recommendedItems.isNotEmpty()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Vizora") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Vizora") },
+                actions = {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         if (isLoading && !hasAnyData) {
             // First-launch state: nothing to show yet, so give clear feedback
