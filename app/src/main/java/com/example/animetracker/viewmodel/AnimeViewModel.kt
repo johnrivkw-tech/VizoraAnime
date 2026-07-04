@@ -351,7 +351,8 @@ class AnimeViewModel(application: Application) : AndroidViewModel(application) {
                     name = result.title,
                     totalEpisodes = result.episodes ?: 0,
                     imageUrl = result.images.jpg.large_image_url ?: result.images.jpg.image_url,
-                    malId = result.mal_id
+                    malId = result.mal_id,
+                    durationMinutes = parseDurationMinutes(result.duration)
                 )
             )
         }
