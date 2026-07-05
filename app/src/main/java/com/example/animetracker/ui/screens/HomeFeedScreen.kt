@@ -5,11 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +35,7 @@ import com.example.animetracker.viewmodel.AnimeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
+fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit, onSearchClick: () -> Unit) {
     val trending by viewModel.trending.collectAsState()
     val popularSeason by viewModel.popularThisSeason.collectAsState()
     val topRated by viewModel.topRated.collectAsState()
@@ -59,10 +65,40 @@ fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
         continueTracking.map { it.toHomeCardItem() }
     }
 
+    val hasAnyData = trendingItems.isNotEmpty() || popularItems.isNotEmpty() ||
+        topRatedItems.isNotEmpty() || newReleaseItems.isNotEmpty() || recommendedItems.isNotEmpty()
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Vizora") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Vizora") },
+                actions = {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
-        if (error != null && trendingItems.isEmpty()) {
+        if (isLoading && !hasAnyData) {
+            // First-launch state: nothing to show yet, so give clear feedback
+            // instead of a blank screen while the home feed loads.
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Loading your feed…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else if (error != null && !hasAnyData) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -90,9 +126,11 @@ fun HomeFeedScreen(viewModel: AnimeViewModel, onAnimeClick: (Int) -> Unit) {
             ) {
                 item {
                     FeaturedBanner(
-                        item = trendingItems.firstOrNull(),
-                        onClick = { trendingItems.firstOrNull()?.malId?.let(onAnimeClick) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        items = trendingItems.take(5),
+                        onClick = { it.malId?.let(onAnimeClick) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                 }

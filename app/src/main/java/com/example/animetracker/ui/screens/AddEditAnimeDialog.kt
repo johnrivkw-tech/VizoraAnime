@@ -1,4 +1,4 @@
-package com.example.animetracker.ui.screens
+ package com.example.animetracker.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -61,6 +61,19 @@ fun AddEditAnimeDialog(
     var rating by remember { mutableStateOf(anime?.rating ?: 0) }
     var nameError by remember { mutableStateOf(false) }
 
+    val totalEpisodesInt = totalEpisodes.toIntOrNull() ?: 0
+
+    /** Applies the same "Completed = maxed out, never over max" rule live as the user edits. */
+    fun applyEpisodeRules(newStatus: AnimeStatus = status, newTotal: Int = totalEpisodesInt) {
+        status = newStatus
+        if (newStatus == AnimeStatus.COMPLETED && newTotal > 0) {
+            episodesWatched = newTotal.toString()
+        } else if (newTotal > 0) {
+            val current = episodesWatched.toIntOrNull() ?: 0
+            if (current > newTotal) episodesWatched = newTotal.toString()
+        }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -94,7 +107,14 @@ fun AddEditAnimeDialog(
                     OutlinedTextField(
                         value = episodesWatched,
                         onValueChange = { input ->
-                            if (input.all { it.isDigit() }) episodesWatched = input
+                            if (input.all { it.isDigit() }) {
+                                val clamped = if (totalEpisodesInt > 0) {
+                                    (input.toIntOrNull() ?: 0).coerceIn(0, totalEpisodesInt).toString()
+                                } else {
+                                    input
+                                }
+                                episodesWatched = clamped
+                            }
                         },
                         label = { Text("Watched") },
                         singleLine = true,
@@ -105,7 +125,10 @@ fun AddEditAnimeDialog(
                     OutlinedTextField(
                         value = totalEpisodes,
                         onValueChange = { input ->
-                            if (input.all { it.isDigit() }) totalEpisodes = input
+                            if (input.all { it.isDigit() }) {
+                                totalEpisodes = input
+                                applyEpisodeRules(newTotal = input.toIntOrNull() ?: 0)
+                            }
                         },
                         label = { Text("Total (optional)") },
                         singleLine = true,
@@ -127,7 +150,7 @@ fun AddEditAnimeDialog(
                     AnimeStatus.entries.forEach { option ->
                         FilterChip(
                             selected = status == option,
-                            onClick = { status = option },
+                            onClick = { applyEpisodeRules(newStatus = option) },
                             label = { Text(option.label) }
                         )
                     }
